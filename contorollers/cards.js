@@ -16,7 +16,9 @@ exports.createCard = async (req, res) => {
     const card = new Card({ name, link });
     const validationError = card.validateSync();
     if (validationError) {
-      return res.status(400).json({ message: "Переданы некорректные данные при создании карточки." });
+      return res.status(400).json({
+        message: "Переданы некорректные данные при создании карточки.",
+      });
     }
     const savedCard = await card.save();
     res.status(201).json(savedCard);
@@ -27,17 +29,20 @@ exports.createCard = async (req, res) => {
 
 exports.deleteCard = async (req, res) => {
   try {
-    const { cardId } = req.params;
-    const card = await Card.findById(cardId);
-    const validationError = card.validateSync();
-    if (validationError) {
-      return res.status(400).json({ message: "Переданы некорректные данные при удалении карточки." });
+    // eslint-disable-next-line prefer-destructuring
+    const cardId = req.params.cardId;
+    if (!mongoose.Types.ObjectId.isValid(cardId)) {
+      return res.status(400).json({
+        message: "Переданы некорректные данные при удалении карточки.",
+      });
     }
-    if (!card) {
-      return res.status(404).json({ message: "Карточка с указанным _id не найдена." });
+    const deletedCard = await Card.findByIdAndDelete(cardId);
+    if (!deletedCard) {
+      return res
+        .status(404)
+        .json({ message: "Карточка с указанным _id не найдена." });
     }
-    card.deleteOne();
-    res.status(200).json(card);
+    res.status(200).json(deletedCard);
   } catch (error) {
     res.status(500).json({ message: "Ошибка по умолчанию." });
   }
@@ -46,11 +51,9 @@ exports.deleteCard = async (req, res) => {
 exports.likeCard = async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
-      return res
-        .status(400)
-        .json({
-          message: "Переданы некорректные данные при постановке лайка.",
-        });
+      return res.status(400).json({
+        message: "Переданы некорректные данные при постановке лайка.",
+      });
     }
     const updatedCard = await Card.findByIdAndUpdate(
       req.params.cardId,
@@ -58,7 +61,9 @@ exports.likeCard = async (req, res) => {
       { new: true }
     );
     if (!updatedCard) {
-      return res.status(404).json({ message: "Передан несуществующий _id карточки." });
+      return res
+        .status(404)
+        .json({ message: "Передан несуществующий _id карточки." });
     }
     res.status(200).json(updatedCard);
   } catch (error) {
@@ -74,10 +79,13 @@ exports.dislikeCard = async (req, res) => {
       { new: true }
     );
     if (!updatedCard) {
-      return res.status(404).json({ message: "Передан несуществующий _id карточки." });
+      return res
+        .status(404)
+        .json({ message: "Передан несуществующий _id карточки." });
     }
     res.status(200).json(updatedCard);
   } catch (error) {
     res.status(500).json({ message: "Ошибка по умолчанию." });
   }
 };
+//&& cardId !== "61eade4c6d5acf558c42d9b8"
