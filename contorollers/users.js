@@ -78,10 +78,10 @@ exports.updateAvatar = async (req, res) => {
     const { avatar } = req.body;
     const updatedAvatar = await User.findByIdAndUpdate(
       userId,
-      { $set: { avatar } },
+      { avatar },
       { new: true }
     );
-    const validationError = updatedAvatar.validateSync();
+    const validationError = updatedAvatar.validateSync("avatar");
     if (validationError) {
       return res.status(400).json({
         message: "Переданы некорректные данные при обновлении аватара.",
