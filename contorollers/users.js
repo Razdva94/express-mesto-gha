@@ -5,7 +5,7 @@ exports.getUsers = async (req, res) => {
     const users = await User.find();
     res.status(200).json(users);
   } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ message: "Ошибка по умолчанию." });
   }
 };
 
@@ -14,11 +14,11 @@ exports.getUserById = async (req, res) => {
     const { userId } = req.params;
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ message: "Пользователь по указанному _id не найден." });
     }
     res.status(200).json(user);
   } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ message: "Ошибка по умолчанию." });
   }
 };
 
@@ -26,24 +26,41 @@ exports.createUser = async (req, res) => {
   try {
     const { name, about, avatar } = req.body;
     const user = new User({ name, about, avatar });
+    const validationError = user.validateSync();
+    if (validationError) {
+      return res.status(400).json({ message: "Переданы некорректные данные при создании пользователя." });
+    }
     const savedUser = await user.save();
     res.status(201).json(savedUser);
   } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ message: "Ошибка по умолчанию." });
   }
 };
 
 exports.updateUser = async (req, res) => {
   try {
-    const { userId } = req.user._id;
-    console.log("Айди юзера", userId);
+    const userId = req.user._id;
     const { name, about } = req.body;
     const updatedUser = await User.findByIdAndUpdate(userId, { name, about });
     if (!updatedUser) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ message: "Пользователь с указанным _id не найден." });
     }
     res.status(201).json(updatedUser);
   } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ message: "Ошибка по умолчанию." });
+  }
+};
+
+exports.updateAvatar = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { avatar } = req.body;
+    const updatedAvatar = await User.findByIdAndUpdate(userId, { avatar });
+    if (!updatedAvatar) {
+      return res.status(404).json({ message: "Пользователь с указанным _id не найден. " });
+    }
+    res.status(201).json(avatar);
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка по умолчанию." });
   }
 };
