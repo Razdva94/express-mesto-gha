@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const User = require("../models/user");
 
 exports.getUsers = async (req, res) => {
@@ -12,15 +13,11 @@ exports.getUsers = async (req, res) => {
 exports.getUserById = async (req, res) => {
   try {
     const { userId } = req.params;
-
-    // if (!mongoose.Types.ObjectId.isValid(userId)) {
-    //   return res
-    //     .status(400)
-    //     .json({
-    //       message: "Переданы некорректные данные при создании пользователя.",
-    //     });
-    // }
-
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res
+        .status(400)
+        .json({ message: "Переданы некорректные данные при создании пользователя." });
+    }
     const user = await User.findById(userId);
     if (!user) {
       return res
@@ -38,11 +35,9 @@ exports.createUser = async (req, res) => {
     const user = new User({ name, about, avatar });
     const validationError = user.validateSync();
     if (validationError) {
-      return res
-        .status(400)
-        .json({
-          message: "Переданы некорректные данные при создании пользователя.",
-        });
+      return res.status(400).json({
+        message: "Переданы некорректные данные при создании пользователя.",
+      });
     }
     const savedUser = await user.save();
     res.status(201).json(savedUser);
