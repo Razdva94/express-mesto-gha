@@ -29,6 +29,10 @@ exports.deleteCard = async (req, res) => {
   try {
     const { cardId } = req.params;
     const card = await Card.findById(cardId);
+    const validationError = card.validateSync();
+    if (validationError) {
+      return res.status(400).json({ message: "Переданы некорректные данные при удалении карточки." });
+    }
     if (!card) {
       return res.status(404).json({ message: "Карточка с указанным _id не найдена." });
     }

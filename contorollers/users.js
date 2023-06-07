@@ -85,7 +85,7 @@ exports.updateAvatar = async (req, res) => {
       { avatar },
       { new: true }
     );
-    const validationError = updatedUser.validateSync();
+    const validationError = updatedAvatar.validateSync();
     if (validationError) {
       return res
         .status(400)
