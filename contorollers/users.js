@@ -13,13 +13,13 @@ exports.getUserById = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res
-        .status(400)
-        .json({
-          message: "Переданы некорректные данные при создании пользователя.",
-        });
-    }
+    // if (!mongoose.Types.ObjectId.isValid(userId)) {
+    //   return res
+    //     .status(400)
+    //     .json({
+    //       message: "Переданы некорректные данные при создании пользователя.",
+    //     });
+    // }
 
     const user = await User.findById(userId);
     if (!user) {
