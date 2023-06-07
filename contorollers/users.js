@@ -61,9 +61,10 @@ exports.updateUser = async (req, res) => {
     if (validationError) {
       return res
         .status(200)
-        .json({
-          message: "Переданы некорректные данные при создании пользователя.",
-        });
+        .json(
+          // message: "Переданы некорректные данные при создании пользователя.",
+          updatedUser
+        );
     }
     if (!updatedUser) {
       return res
