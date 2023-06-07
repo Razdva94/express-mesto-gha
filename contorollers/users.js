@@ -81,13 +81,12 @@ exports.updateAvatar = async (req, res) => {
       { avatar },
       { new: true }
     );
-    // const validationError = updatedAvatar.validateSync();
-    // if (validationError) {
-    //   return res.status(200).json(
-    // message: "Переданы некорректные данные при создании аватара.",
-    //     updatedAvatar
-    //   );
-    // }
+    const validationError = updatedAvatar.validateSync();
+    if (validationError) {
+      return res.status(400).json({
+        message: "Переданы некорректные данные при обновлении аватара.",
+      });
+    }
     if (!updatedAvatar) {
       return res
         .status(404)
