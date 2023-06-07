@@ -78,7 +78,7 @@ exports.updateAvatar = async (req, res) => {
     const { avatar } = req.body;
     const updatedAvatar = await User.findByIdAndUpdate(
       userId,
-      { avatar },
+      { $set: { avatar } },
       { new: true }
     );
     const validationError = updatedAvatar.validateSync();
