@@ -73,6 +73,13 @@ exports.likeCard = async (req, res) => {
 
 exports.dislikeCard = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
+      return res.status(400).json({
+        message: "Переданы некорректные данные при удалении лайка.",
+      });
+    }
+    const { cardId } = req.params;
+    res.json(cardId);
     const updatedCard = await Card.findByIdAndUpdate(
       req.params.cardId,
       { $pull: { likes: req.user._id } },
@@ -88,4 +95,3 @@ exports.dislikeCard = async (req, res) => {
     res.status(500).json({ message: "Ошибка по умолчанию." });
   }
 };
-//&& cardId !== "61eade4c6d5acf558c42d9b8"
