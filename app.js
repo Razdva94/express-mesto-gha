@@ -34,8 +34,9 @@ app.use((req, res, next) => {
   next(error);
 });
 
-app.use((error, req, res) => {
-  res.status(error.status || 500).json({ message: error.message || "Internal Server Error" });
+// eslint-disable-next-line no-unused-vars
+app.use((error, req, res, next) => {
+  res.status(error.status || 500).json({ message: "Переданы некорректные данные." });
 });
 
 app.listen(3000, () => {
