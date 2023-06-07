@@ -78,8 +78,6 @@ exports.dislikeCard = async (req, res) => {
         message: "Переданы некорректные данные при удалении лайка.",
       });
     }
-    const { cardId } = req.params;
-    res.json(cardId);
     const updatedCard = await Card.findByIdAndUpdate(
       req.params.cardId,
       { $pull: { likes: req.user._id } },
