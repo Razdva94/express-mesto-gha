@@ -98,7 +98,7 @@ exports.updateAvatar = async (req, res) => {
         .status(404)
         .json({ message: "Пользователь с указанным _id не найден. " });
     }
-    res.status(200).json(avatar);
+    res.status(200).json(updatedAvatar);
   } catch (error) {
     res.status(500).json({ message: "Ошибка по умолчанию." });
   }
