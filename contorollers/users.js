@@ -55,6 +55,10 @@ exports.updateUser = async (req, res) => {
       { name, about },
       { new: true }
     );
+    const validationError = updatedUser.validateSync();
+    if (validationError) {
+      return res.status(400).json({ message: "Переданы некорректные данные при создании пользователя." });
+    }
     if (!updatedUser) {
       return res
         .status(404)
