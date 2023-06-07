@@ -41,11 +41,11 @@ exports.updateUser = async (req, res) => {
   try {
     const userId = req.user._id;
     const { name, about } = req.body;
-    const updatedUser = await User.findByIdAndUpdate(userId, { name, about });
+    const updatedUser = await User.findByIdAndUpdate(userId, { name, about }, { new: true });
     if (!updatedUser) {
       return res.status(404).json({ message: "Пользователь с указанным _id не найден." });
     }
-    res.status(201).json(updatedUser);
+    res.status(200).json(updatedUser);
   } catch (error) {
     res.status(500).json({ message: "Ошибка по умолчанию." });
   }
