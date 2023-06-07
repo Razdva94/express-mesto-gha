@@ -16,7 +16,9 @@ exports.getUserById = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res
         .status(400)
-        .json({ message: "Переданы некорректные данные при создании пользователя." });
+        .json({
+          message: "Переданы некорректные данные при создании пользователя.",
+        });
     }
     const user = await User.findById(userId);
     if (!user) {
@@ -57,7 +59,11 @@ exports.updateUser = async (req, res) => {
     );
     const validationError = updatedUser.validateSync();
     if (validationError) {
-      return res.status(400).json({ message: "Переданы некорректные данные при создании пользователя." });
+      return res
+        .status(400)
+        .json({
+          message: "Переданы некорректные данные при создании пользователя.",
+        });
     }
     if (!updatedUser) {
       return res
@@ -74,7 +80,19 @@ exports.updateAvatar = async (req, res) => {
   try {
     const userId = req.user._id;
     const { avatar } = req.body;
-    const updatedAvatar = await User.findByIdAndUpdate(userId, { avatar });
+    const updatedAvatar = await User.findByIdAndUpdate(
+      userId,
+      { avatar },
+      { new: true }
+    );
+    const validationError = updatedUser.validateSync();
+    if (validationError) {
+      return res
+        .status(400)
+        .json({
+          message: "Переданы некорректные данные при создании аватара.",
+        });
+    }
     if (!updatedAvatar) {
       return res
         .status(404)

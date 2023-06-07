@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Card = require("../models/card");
 
 exports.getCards = async (req, res) => {
@@ -40,6 +41,13 @@ exports.deleteCard = async (req, res) => {
 
 exports.likeCard = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
+      return res
+        .status(400)
+        .json({
+          message: "Переданы некорректные данные при постановке лайка.",
+        });
+    }
     const updatedCard = await Card.findByIdAndUpdate(
       req.params.cardId,
       { $addToSet: { likes: req.user._id } },
