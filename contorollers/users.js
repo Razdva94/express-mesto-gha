@@ -33,19 +33,17 @@ exports.createUser = async (req, res) => {
   try {
     const { name, about, avatar } = req.body;
     const user = new User({ name, about, avatar });
-    const validationError = user.validateSync();
-    if (validationError) {
+    const savedUser = await user.save();
+    res.status(201).json(savedUser);
+  } catch (error) {
+    if (error.name === "ValidationError") {
       return res.status(400).json({
         message: "Переданы некорректные данные при создании пользователя.",
       });
     }
-    const savedUser = await user.save();
-    res.status(201).json(savedUser);
-  } catch (error) {
     res.status(500).json({ message: "Ошибка по умолчанию." });
   }
 };
-
 exports.updateUser = async (req, res) => {
   try {
     const userId = req.user._id;
