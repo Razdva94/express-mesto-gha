@@ -44,33 +44,28 @@ exports.createUser = async (req, res) => {
     res.status(500).json({ message: "Ошибка по умолчанию." });
   }
 };
-
 exports.updateUser = async (req, res) => {
   try {
     const userId = req.user._id;
     const { name, about } = req.body;
-
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { name, about },
       { new: true }
-    ).orFail(new Error("Пользователь с указанным _id не найден."));
-
+    );
     const validationError = updatedUser.validateSync();
-
     if (validationError) {
       return res.status(400).json({
-        message: "Переданы некорректные данные при обновлении пользователя.",
+        message: "Переданы некорректные данные при создании пользователя.",
       });
     }
-
+    if (!updatedUser) {
+      return res
+        .status(404)
+        .json({ message: "Пользователь с указанным _id не найден." });
+    }
     res.status(200).json(updatedUser);
   } catch (error) {
-    if (error.name === "CastError" && error.kind === "ObjectId") {
-      return res.status(404).json({
-        message: "Пользователь с указанным _id не найден.",
-      });
-    }
     res.status(500).json({ message: "Ошибка по умолчанию." });
   }
 };
