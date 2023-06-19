@@ -1,10 +1,16 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const cookieParser = require("cookie-parser");
 const cardRoutes = require("./routes/card");
 const userRoutes = require("./routes/user");
+const {login, createUser} =require("./contorollers/users")
+const {auth} = require("./middlewares/auth")
+
+
 
 const app = express();
 app.use(express.json());
+app.use(cookieParser())
 const mongoURI = "mongodb://0.0.0.0:27017/mestodb";
 
 mongoose
@@ -18,13 +24,10 @@ mongoose
   .catch((error) => {
     console.error("Error connecting to MongoDB:", error);
   });
-app.use((req, res, next) => {
-  req.user = {
-    _id: "647edc6ba0fc4d1a40d2b772",
-  };
 
-  next();
-});
+app.post('/signin', login );
+app.post('/signup', createUser); 
+app.use(auth);
 app.use("/", cardRoutes);
 app.use("/", userRoutes);
 
@@ -33,7 +36,6 @@ app.use((req, res, next) => {
   error.status = 404;
   next(error);
 });
-
 // eslint-disable-next-line no-unused-vars
 app.use((error, req, res, next) => {
   res.status(error.status || 500).json({ message: "Переданы некорректные данные." });

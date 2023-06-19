@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Card = require("../models/card");
+const card = require("../models/card");
 
 exports.getCards = async (req, res) => {
   try {
@@ -13,16 +14,18 @@ exports.getCards = async (req, res) => {
 exports.createCard = async (req, res) => {
   try {
     const { name, link } = req.body;
-    const card = new Card({ name, link });
+    const ownerId = req.user._id;
+    const card = new Card({ name, link, owner: ownerId });
     const validationError = card.validateSync();
-    if (validationError) {
-      return res.status(400).json({
-        message: "Переданы некорректные данные при создании карточки.",
-      });
-    }
+    // if (validationError) {
+    //   return res.status(400).json({
+    //     message: "Переданы некорректные данные при создании карточки.",
+    //   });
+    // }
     const savedCard = await card.save();
     res.status(201).json(savedCard);
   } catch (error) {
+    console.log(error.message)
     res.status(500).json({ message: "Ошибка по умолчанию." });
   }
 };
@@ -41,6 +44,9 @@ exports.deleteCard = async (req, res) => {
       return res
         .status(404)
         .json({ message: "Карточка с указанным _id не найдена." });
+    }
+    if (req.user._id !== deletedCard.owner.toString()) {
+    return res.status(403).json({message: "Нельзя удалить карточку созданную не Вами"})
     }
     res.status(200).json(deletedCard);
   } catch (error) {
