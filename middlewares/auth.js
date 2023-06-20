@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 exports.auth = (req, res, next) => {
   const token = req.cookies.jwt;
   if (!token) {
+    console.log("sdf")
     const error = new Error();
     error.name = "userNotFound";
     next(error);
