@@ -4,7 +4,7 @@ const {isEmail} = require('validator');
 const userSchema = new Schema(
   {
     name: {
-      default: "Жак",
+      default: "Жак-Ив Кусто",
       type: String,
       required:[true, 'Поле "name" должно быть заполнено'],
       minlength: [2, 'Минимальная длина поля "name" - 2'],
@@ -19,7 +19,7 @@ const userSchema = new Schema(
     },
     avatar: {
       default: "https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png",
-      required:[true, 'Поле "avatar" должно быть заполнено'],
+      required:[isURL, 'Неверный формат URL аватара'],
       type: String,
     },
     email: {
