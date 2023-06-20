@@ -19,7 +19,7 @@ const userSchema = new Schema(
     },
     avatar: {
       default: "https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png",
-      required:[isURL, 'Неверный формат URL аватара'],
+      required:[true, 'Неверный формат URL аватара'],
       type: String,
     },
     email: {

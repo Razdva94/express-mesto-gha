@@ -266,6 +266,7 @@ exports.createUser = [
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log(error)
       const error = new Error();
       error.name = "userWrongData";
       return next(error);
