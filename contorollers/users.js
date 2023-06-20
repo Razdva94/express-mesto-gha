@@ -20,12 +20,14 @@ exports.getUserById = async (req, res, next) => {
       const error = new Error();
       error.name = "userWrongData";
       next(error);
+      return;
     }
     const user = await User.findById(userId);
     if (!user) {
       const error = new Error();
       error.name = "userWrongId";
       next(error);
+      return;
     }
     res.status(200).json(user);
   } catch (error) {

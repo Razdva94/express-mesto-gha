@@ -13,7 +13,7 @@ exports.getCards = async (req, res) => {
 
 exports.createCard = [
   body("name").notEmpty().isLength({ min: 2 }).isLength({ max: 30 }),
-  body("link").notEmpty(),
+  body("link").notEmpty().isURL(),
 
   (req, res, next) => {
     const errors = validationResult(req);
