@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
 const jsonWebToken = require("jsonwebtoken");
-const { body, validationResult } = require("express-validator");
+const Joi = require("joi");
 
 exports.getUsers = async (req, res) => {
   try {
@@ -35,18 +35,21 @@ exports.getUserById = async (req, res, next) => {
   }
 };
 
-exports.createUser = [
-  body("email").isEmail().notEmpty(),
-  body("password").notEmpty(),
+const createUserSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().required(),
+});
 
+exports.createUser = [
   (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      const error = new Error();
-      error.name = "userWrongData";
-      return next(error);
+    const { error } = createUserSchema.validate(req.body);
+    if (error) {
+      const validationError = new Error();
+      validationError.name = "userWrongData";
+      next(validationError);
+    } else {
+      next();
     }
-    next();
   },
   async (req, res, next) => {
     try {
@@ -80,131 +83,141 @@ exports.createUser = [
   },
 ];
 
+const updateUserSchema = Joi.object({
+  name: Joi.string().optional().min(2).max(30),
+  about: Joi.string().optional().min(2).max(30),
+});
+
 exports.updateUser = [
-body("name").optional().isLength({min: 2}).isLength({max: 30}),
-body("about").optional().isLength({min: 2}).isLength({max: 30}),
-
-(req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const error = new Error();
-    error.name = "userWrongData";
-    return next(error);
-  }
-  next();
-},
-
-async (req, res) => {
-  try {
-    const userId = req.user._id;
-    const { name, about } = req.body;
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { name, about },
-      { new: true }
-    );
-    const validationError = updatedUser.validateSync();
-    if (validationError) {
-      const error = new Error();
-      error.name = "userWrongData";
-      next(error);
-    }
-    if (!updatedUser) {
-      const error = new Error();
-      error.name = "userWrongId";
-      next(error);
-    }
-    res.status(200).json(updatedUser);
-  } catch (error) {
-    next(error);
-  }
-}
-];
-
-exports.updateAvatar =  [
-  body("avatar").matches(/^https?:\/\/(?:www\.)?[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]+#?$/),
-
   (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      const error = new Error();
-      error.name = "userWrongData";
-      return next(error);
+    const { error } = updateUserSchema.validate(req.body);
+    if (error) {
+      const validationError = new Error();
+      validationError.name = "userWrongData";
+      next(validationError);
+    } else {
+      next();
     }
-    next()
   },
-  async (req, res) =>{
-  try {
-    const userId = req.user._id;
-    const { avatar } = req.body;
-    const updatedAvatar = await User.findByIdAndUpdate(
-      userId,
-      { avatar },
-      { new: true }
-    );
-    const validationError = updatedAvatar.validateSync("avatar");
-    if (validationError) {
-      const error = new Error();
-      error.name = "userWrongData";
+  async (req, res, next) => {
+    try {
+      const userId = req.user._id;
+      const { name, about } = req.body;
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { name, about },
+        { new: true }
+      );
+      const validationError = updatedUser.validateSync();
+      if (validationError) {
+        const error = new Error();
+        error.name = "userWrongData";
+        next(error);
+      }
+      if (!updatedUser) {
+        const error = new Error();
+        error.name = "userWrongId";
+        next(error);
+      }
+      res.status(200).json(updatedUser);
+    } catch (error) {
       next(error);
     }
-    if (!updatedAvatar) {
-      const error = new Error();
-      error.name = "userWrongId";
-      next(error);
-    }
-    res.status(200).json(updatedAvatar);
-  } catch (error) {
-    next(error);
-  }
-}
+  },
 ];
+
+const updateAvatarSchema = Joi.object({
+  avatar: Joi.string()
+    .pattern(/^https?:\/\/(?:www\.)?[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]+#?$/)
+    .required(),
+});
+
+exports.updateAvatar = [
+  (req, res, next) => {
+    const { error } = updateAvatarSchema.validate(req.body);
+    if (error) {
+      const validationError = new Error();
+      validationError.name = "userWrongData";
+      next(validationError);
+    } else {
+      next();
+    }
+  },
+  async (req, res, next) => {
+    try {
+      const userId = req.user._id;
+      const { avatar } = req.body;
+      const updatedAvatar = await User.findByIdAndUpdate(
+        userId,
+        { avatar },
+        { new: true }
+      );
+      const validationError = updatedAvatar.validateSync("avatar");
+      if (validationError) {
+        const error = new Error();
+        error.name = "userWrongData";
+        next(error);
+      }
+      if (!updatedAvatar) {
+        const error = new Error();
+        error.name = "userWrongId";
+        next(error);
+      }
+      res.status(200).json(updatedAvatar);
+    } catch (error) {
+      next(error);
+    }
+  },
+];
+
+const loginSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().required(),
+});
 
 exports.login = [
-  body("email").isEmail().notEmpty(),
-  body("password").notEmpty(),
-
   (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      const error = new Error();
-      error.name = "userWrongData";
-      return next(error);
-    }
-   next()
-  },
-async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email }).select("+password");
-    if (!user) {
-      const error = new Error();
-      error.name = "userNotFound";
-      next(error);
-    }
-    const isValidUser = await bcrypt.compare(String(password), user.password);
-    if (isValidUser) {
-      const jwt = jsonWebToken.sign(
-        {
-          _id: user._id,
-        },
-        "SECRET"
-      );
-      res.cookie("jwt", jwt, {
-        maxAge: 3600000,
-        httpOnly: true,
-        sameSite: true,
-      });
-      res.send({ data: user.toJSON() });
+    const { error } = loginSchema.validate(req.body);
+    if (error) {
+      const validationError = new Error();
+      validationError.name = "userWrongData";
+      next(validationError);
     } else {
-      const error = new Error();
-      error.name = "userNotFound";
+      next();
+    }
+  },
+  async (req, res, next) => {
+    try {
+      const { email, password } = req.body;
+      const user = await User.findOne({ email }).select("+password");
+      if (!user) {
+        const error = new Error();
+        error.name = "userNotFound";
+        next(error);
+      }
+      const isValidUser = await bcrypt.compare(String(password), user.password);
+      if (isValidUser) {
+        const jwt = jsonWebToken.sign(
+          {
+            _id: user._id,
+          },
+          "SECRET"
+        );
+        res.cookie("jwt", jwt, {
+          maxAge: 3600000,
+          httpOnly: true,
+          sameSite: true,
+        });
+        res.send({ data: user.toJSON() });
+      } else {
+        const error = new Error();
+        error.name = "userNotFound";
+        next(error);
+      }
+    } catch (error) {
       next(error);
     }
-  } catch (error) {
-    next(error);
-  }
-}
+  },
 ];
 
 exports.getUser = async (req, res) => {
