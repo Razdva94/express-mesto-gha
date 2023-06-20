@@ -1,9 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const user = require("../contorollers/users");
-// const {auth} = require("../middlewares/auth")
-
-
 
 router.get("/users", user.getUsers);
 

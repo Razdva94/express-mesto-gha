@@ -1,65 +1,81 @@
 const mongoose = require("mongoose");
 const Card = require("../models/card");
-const card = require("../models/card");
+const { body, validationResult } = require("express-validator");
 
 exports.getCards = async (req, res) => {
   try {
     const cards = await Card.find();
     res.status(200).json(cards);
   } catch (error) {
-    res.status(500).json({ message: "Ошибка по умолчанию." });
+    next(error);
   }
 };
 
-exports.createCard = async (req, res) => {
-  try {
-    const { name, link } = req.body;
-    const ownerId = req.user._id;
-    const card = new Card({ name, link, owner: ownerId });
-    const validationError = card.validateSync();
-    // if (validationError) {
-    //   return res.status(400).json({
-    //     message: "Переданы некорректные данные при создании карточки.",
-    //   });
-    // }
-    const savedCard = await card.save();
-    res.status(201).json(savedCard);
-  } catch (error) {
-    console.log(error.message)
-    res.status(500).json({ message: "Ошибка по умолчанию." });
-  }
-};
+exports.createCard = [
+  body("name").notEmpty().isLength({ min: 2 }).isLength({ max: 30 }),
+  body("link").notEmpty(),
+
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const error = new Error();
+      error.name = "cardWrongData";
+      return next(error);
+    }
+    next();
+  },
+
+  async (req, res) => {
+    try {
+      const { name, link } = req.body;
+      const ownerId = req.user._id;
+      const card = new Card({ name, link, owner: ownerId });
+      const validationError = card.validateSync();
+      if (validationError) {
+        const error = new Error();
+        error.name = "cardWrongData";
+        next(error);
+      }
+      const savedCard = await card.save();
+      res.status(201).json(savedCard);
+    } catch (error) {
+      next(error);
+    }
+  },
+];
 
 exports.deleteCard = async (req, res) => {
   try {
     // eslint-disable-next-line prefer-destructuring
     const cardId = req.params.cardId;
     if (!mongoose.Types.ObjectId.isValid(cardId)) {
-      return res.status(400).json({
-        message: "Переданы некорректные данные при удалении карточки.",
-      });
+      const error = new Error();
+      error.name = "cardWrongData";
+      next(error);
     }
     const deletedCard = await Card.findByIdAndDelete(cardId);
     if (!deletedCard) {
-      return res
-        .status(404)
-        .json({ message: "Карточка с указанным _id не найдена." });
+      const error = new Error();
+      error.name = "cardWrongId";
+      next(error);
     }
     if (req.user._id !== deletedCard.owner.toString()) {
-    return res.status(403).json({message: "Нельзя удалить карточку созданную не Вами"})
+      const error = new Error();
+      error.name = "cardAccessError";
+      next(error);
     }
     res.status(200).json(deletedCard);
   } catch (error) {
-    res.status(500).json({ message: "Ошибка по умолчанию." });
+    next(error);
   }
 };
 
 exports.likeCard = async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
-      return res.status(400).json({
-        message: "Переданы некорректные данные при постановке лайка.",
-      });
+      const error = new Error();
+      error.name = "cardWrongData";
+      next(error);
     }
     const updatedCard = await Card.findByIdAndUpdate(
       req.params.cardId,
@@ -67,22 +83,22 @@ exports.likeCard = async (req, res) => {
       { new: true }
     );
     if (!updatedCard) {
-      return res
-        .status(404)
-        .json({ message: "Передан несуществующий _id карточки." });
+      const error = new Error();
+      error.name = "cardWrongId";
+      next(error);
     }
     res.status(200).json(updatedCard);
   } catch (error) {
-    res.status(500).json({ message: "Ошибка по умолчанию." });
+    next(error);
   }
 };
 
 exports.dislikeCard = async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
-      return res.status(400).json({
-        message: "Переданы некорректные данные при удалении лайка.",
-      });
+      const error = new Error();
+      error.name = "cardWrongData";
+      next(error);
     }
     const updatedCard = await Card.findByIdAndUpdate(
       req.params.cardId,
@@ -90,12 +106,12 @@ exports.dislikeCard = async (req, res) => {
       { new: true }
     );
     if (!updatedCard) {
-      return res
-        .status(404)
-        .json({ message: "Передан несуществующий _id карточки." });
+      const error = new Error();
+      error.name = "cardWrongId";
+      next(error);
     }
     res.status(200).json(updatedCard);
   } catch (error) {
-    res.status(500).json({ message: "Ошибка по умолчанию." });
+    next(error);
   }
 };

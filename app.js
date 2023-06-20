@@ -5,6 +5,7 @@ const cardRoutes = require("./routes/card");
 const userRoutes = require("./routes/user");
 const {login, createUser} =require("./contorollers/users")
 const {auth} = require("./middlewares/auth")
+const {errorHandler} = require("./middlewares/error")
 
 
 
@@ -31,15 +32,7 @@ app.use(auth);
 app.use("/", cardRoutes);
 app.use("/", userRoutes);
 
-app.use((req, res, next) => {
-  const error = new Error("Not Found");
-  error.status = 404;
-  next(error);
-});
-// eslint-disable-next-line no-unused-vars
-app.use((error, req, res, next) => {
-  res.status(error.status || 500).json({ message: "Переданы некорректные данные." });
-});
+app.use(errorHandler)
 
 app.listen(3000, () => {
   console.log("Server is running on port 3000");
