@@ -15,7 +15,7 @@ exports.getUsers = async (req, res, next) => {
   }
 };
 
-exports.getUserById = async (req, res, next) => {
+exports.getUserById = async ( req, res, next) => {
   try {
     const { userId } = req.params;
     const user = await User.findById(userId);
@@ -25,7 +25,7 @@ exports.getUserById = async (req, res, next) => {
     }
     res.status(200).json(user);
   } catch (error) {
-    if (error.statusCode === 400) {
+    if (error.name === "ValidationError") {
       next(new UserWrongData("Переданы некорректные данные пользователя."));
     } else {
       next(error);
@@ -33,7 +33,7 @@ exports.getUserById = async (req, res, next) => {
   }
 };
 
-exports.createUser = async (req, res, next) => {
+exports.createUser = async ( req, res, next) => {
   try {
     const { name, about, avatar, password, email } = req.body;
     const hashedPassword = await bcrypt.hash(String(password), 12);
@@ -81,7 +81,7 @@ exports.updateUser = async (req, res, next) => {
 
     res.status(200).json(updatedUser);
   } catch (error) {
-    if (error.statusCode === 400) {
+    if (error.name === "ValidationError") {
       next(UserWrongData("Переданы некорректные данные пользователя."));
     } else {
       next(error);
@@ -109,7 +109,7 @@ exports.updateAvatar = async (req, res, next) => {
     }
     res.status(200).json(updatedAvatar);
   } catch (error) {
-    if (error.statusCode === 400) {
+    if (error.name === "ValidationError") {
       next(UserWrongData("Переданы некорректные данные ссылки на аватар."));
     } else {
       next(error);

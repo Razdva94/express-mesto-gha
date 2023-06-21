@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
-const { celebrate, Segments, Joi } = require('celebrate');
+const { celebrate, Segments, Joi, errors } = require('celebrate');
 const cardRoutes = require("./routes/card");
 const userRoutes = require("./routes/user");
 const { login, createUser } = require("./controllers/users");
@@ -60,6 +60,7 @@ app.use((req, res, next) => {
   const error = new NotFoundError('Маршрут не найден');
   next(error);
 });
+app.use(errors())
 app.use(errorHandler);
 
 app.listen(3000, () => {
