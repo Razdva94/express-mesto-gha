@@ -9,8 +9,8 @@ const userRoutes = require('./routes/user');
 const { login, createUser } = require('./controllers/users');
 const { auth } = require('./middlewares/auth');
 const { errorHandler } = require('./middlewares/error');
-const NotFoundError = require('./middlewares/NotFoundError');
 const urlPattern = require('./middlewares/urlPattern');
+const WrongIdError = require('./middlewares/WrongIdError');
 
 const app = express();
 app.use(express.json());
@@ -57,7 +57,7 @@ app.use(auth);
 app.use('/', cardRoutes);
 app.use('/', userRoutes);
 app.use((req, res, next) => {
-  const error = new NotFoundError('Маршрут не найден');
+  const error = new WrongIdError('Маршрут не найден');
   next(error);
 });
 app.use(errors());
