@@ -1,17 +1,18 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
+const { celebrate, Segments, Joi } = require('celebrate');
 const cardRoutes = require("./routes/card");
 const userRoutes = require("./routes/user");
-const {login, createUser} =require("./contorollers/users")
-const {auth} = require("./middlewares/auth")
-const {errorHandler} = require("./middlewares/error")
-
+const { login, createUser } = require("./controllers/users");
+const { auth } = require("./middlewares/auth");
+const { errorHandler } = require("./middlewares/error");
+const NotFoundError = require("./middlewares/NotFoundError")
 
 
 const app = express();
 app.use(express.json());
-app.use(cookieParser())
+app.use(cookieParser());
 const mongoURI = "mongodb://0.0.0.0:27017/mestodb";
 
 mongoose
@@ -25,18 +26,41 @@ mongoose
   .catch((error) => {
     console.error("Error connecting to MongoDB:", error);
   });
-  // app.use((req, res, next) => {
-  //   console.log('Incoming Request:', req.method, req.url);
-  //   next();
-  // });
 
-app.post('/signin', login );
-app.post('/signup', createUser); 
+app.post(
+  "/signin",
+  celebrate({
+    [Segments.BODY]: Joi.object().keys({
+      email: Joi.string().email().required(),
+      password: Joi.string().required(),
+    }),
+  }),
+  login
+);
+
+app.post(
+  "/signup",
+  celebrate({
+    [Segments.BODY]: Joi.object().keys({
+      email: Joi.string().email().required(),
+      password: Joi.string().required(),
+      avatar: Joi.string().pattern(
+        /^https?:\/\/(?:www\.)?[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]+#?$/
+      ),
+      name: Joi.string().min(2).max(30),
+      about: Joi.string().min(2).max(30),
+    }),
+  }),
+  createUser
+);
 app.use(auth);
 app.use("/", cardRoutes);
 app.use("/", userRoutes);
-
-app.use(errorHandler)
+app.use((req, res, next) => {
+  const error = new NotFoundError('Маршрут не найден');
+  next(error);
+});
+app.use(errorHandler);
 
 app.listen(3000, () => {
   console.log("Server is running on port 3000");
