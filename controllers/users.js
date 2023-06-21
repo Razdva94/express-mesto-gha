@@ -1,10 +1,10 @@
-const bcrypt = require("bcrypt");
-const User = require("../models/user");
-const jsonWebToken = require("jsonwebtoken");
-const UserWrongData = require("../middlewares/UserWrongDataError");
-const UserWrongId = require("../middlewares/UserWrongIdError");
-const UserNotFound = require("../middlewares/UserNotFoundError");
-const SameUserError = require("../middlewares/SameUserError");
+const bcrypt = require('bcrypt');
+const jsonWebToken = require('jsonwebtoken');
+const User = require('../models/user');
+const WrongData = require('../middlewares/WrongDataError');
+const WrongId = require('../middlewares/WrongIdError');
+const NotFound = require('../middlewares/NotFoundError');
+const SameUserError = require('../middlewares/SameUserError');
 
 exports.getUsers = async (req, res, next) => {
   try {
@@ -15,27 +15,29 @@ exports.getUsers = async (req, res, next) => {
   }
 };
 
-exports.getUserById = async ( req, res, next) => {
+exports.getUserById = async (req, res, next) => {
   try {
     const { userId } = req.params;
     const user = await User.findById(userId);
     if (!user) {
-      next(new UserWrongId("Пользователь по указанному _id не найден."));
+      next(new WrongId('Пользователь по указанному _id не найден.'));
       return;
     }
     res.status(200).json(user);
   } catch (error) {
-    if (error.name === "ValidationError") {
-      next(new UserWrongData("Переданы некорректные данные пользователя."));
+    if (error.name === 'ValidationError') {
+      next(new WrongData('Переданы некорректные данные пользователя.'));
     } else {
       next(error);
     }
   }
 };
 
-exports.createUser = async ( req, res, next) => {
+exports.createUser = async (req, res, next) => {
   try {
-    const { name, about, avatar, password, email } = req.body;
+    const {
+      name, about, avatar, password, email,
+    } = req.body;
     const hashedPassword = await bcrypt.hash(String(password), 12);
     const user = new User({
       name,
@@ -50,16 +52,15 @@ exports.createUser = async ( req, res, next) => {
     res.status(201).json(savedUser);
   } catch (error) {
     if (
-      error.code === 11000 &&
-      error.keyPattern &&
-      error.keyPattern.email === 1
+      error.code === 11000
+      && error.keyPattern
+      && error.keyPattern.email === 1
     ) {
-      next(new SameUserError("Пользователь с таким email уже существует."));
-    } else if (error.name === "ValidationError") {
-      next(new UserWrongData("Переданы некорректные данные пользователя."));
-    } else {
-      next(error);
+      next(new SameUserError('Пользователь с таким email уже существует.'));
+    } else if (error.name === 'ValidationError') {
+      next(new WrongData('Переданы некорректные данные пользователя.'));
     }
+    next(error);
   }
 };
 
@@ -71,18 +72,18 @@ exports.updateUser = async (req, res, next) => {
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { name, about },
-      { new: true }
+      { new: true },
     );
 
     if (!updatedUser) {
-      next(new UserWrongId("Пользователь по указанному _id не найден."));
+      next(new WrongId('Пользователь по указанному _id не найден.'));
       return;
     }
 
     res.status(200).json(updatedUser);
   } catch (error) {
-    if (error.name === "ValidationError") {
-      next(UserWrongData("Переданы некорректные данные пользователя."));
+    if (error.name === 'ValidationError') {
+      next(WrongData('Переданы некорректные данные пользователя.'));
     } else {
       next(error);
     }
@@ -96,21 +97,21 @@ exports.updateAvatar = async (req, res, next) => {
     const updatedAvatar = await User.findByIdAndUpdate(
       userId,
       { avatar },
-      { new: true }
+      { new: true },
     );
     const validationError = updatedAvatar.validateSync();
     if (validationError) {
-      next(new UserWrongData("Некорректные данные пользователя."));
+      next(new WrongData('Некорректные данные пользователя.'));
       return;
     }
     if (!updatedAvatar) {
-      next(new UserWrongId("Пользователь по указанному _id не найден."));
+      next(new WrongId('Пользователь по указанному _id не найден.'));
       return;
     }
     res.status(200).json(updatedAvatar);
   } catch (error) {
-    if (error.name === "ValidationError") {
-      next(UserWrongData("Переданы некорректные данные ссылки на аватар."));
+    if (error.name === 'ValidationError') {
+      next(WrongData('Переданы некорректные данные ссылки на аватар.'));
     } else {
       next(error);
     }
@@ -120,9 +121,9 @@ exports.updateAvatar = async (req, res, next) => {
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      next(new UserNotFound("Пользователь с указанным email не найден."));
+      next(new NotFound('Пользователь с указанным email не найден.'));
       return;
     }
     const isValidUser = await bcrypt.compare(String(password), user.password);
@@ -131,23 +132,19 @@ exports.login = async (req, res, next) => {
         {
           _id: user._id,
         },
-        "SECRET"
+        'SECRET',
       );
-      res.cookie("jwt", jwtToken, {
+      res.cookie('jwt', jwtToken, {
         maxAge: 3600000,
         httpOnly: true,
         sameSite: true,
       });
       res.send({ data: user.toJSON() });
     } else {
-      next(new UserNotFound("Неверный пароль."));
+      next(new NotFound('Неверный пароль.'));
     }
   } catch (error) {
-    if (error.statusCode === 400) {
-      next(UserWrongData("Переданы некорректные данные"));
-    } else {
-      next(error);
-    }
+    next(error);
   }
 };
 
@@ -156,9 +153,7 @@ exports.getUser = async (req, res, next) => {
     const userId = req.user._id;
     const user = await User.findById(userId);
     if (!user) {
-      const error = new Error();
-      error.name = "userWrongId";
-      next(error);
+      next(new WrongId('Пользователь по указанному _id не найден.'));
       return;
     }
     res.status(200).json(user);

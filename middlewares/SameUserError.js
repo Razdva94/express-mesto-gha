@@ -1,7 +1,7 @@
 class SameUserError extends Error {
   constructor(message) {
     super(message);
-    this.name = "SameUserError";
+    this.name = 'SameUserError';
     this.statusCode = 409;
   }
 }

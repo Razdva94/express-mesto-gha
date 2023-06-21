@@ -1,22 +1,22 @@
-const { Schema, model } = require("mongoose");
-const {isEmail, isURL} = require('validator');
+const { Schema, model } = require('mongoose');
+const { isEmail, isURL } = require('validator');
 
 const userSchema = new Schema(
   {
     name: {
-      default: "Жак-Ив Кусто",
+      default: 'Жак-Ив Кусто',
       type: String,
       minlength: [2, 'Минимальная длина поля "name" - 2'],
       maxlength: [30, 'Максимальная длина поля "name" - 30'],
     },
     about: {
-      default: "Исследователь океана",
+      default: 'Исследователь океана',
       type: String,
       minlength: [2, 'Минимальная длина поля "about" - 2'],
       maxlength: [30, 'Максимальная длина поля "about" - 30'],
     },
     avatar: {
-      default: "https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png",
+      default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
       validate: [isURL, 'Неверный формат URL аватара'],
       type: String,
     },
@@ -32,13 +32,13 @@ const userSchema = new Schema(
       required: [true, 'Поле "password" должно быть заполнено'],
     },
   },
-  { versionKey: false }
+  { versionKey: false },
 );
 
-userSchema.methods.toJSON = function() {
+userSchema.methods.toJSON = function () {
   const user = this.toObject();
   delete user.password;
   return user;
-}
+};
 
-module.exports = model("User", userSchema);
+module.exports = model('User', userSchema);
