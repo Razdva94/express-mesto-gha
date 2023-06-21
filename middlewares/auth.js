@@ -1,7 +1,10 @@
 const jwt = require("jsonwebtoken");
+const UserNotFound = require("../middlewares/UserNotFoundError")
+
 
 exports.auth = (req, res, next) => {
   const token = req.cookies.jwt;
+  console.log(token)
   if (!token) {
     next(new UserNotFound('Необходима авторизация'))
     return;
